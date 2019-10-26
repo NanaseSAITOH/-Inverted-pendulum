@@ -32,7 +32,7 @@ int MOTOR2_IN2 = 11;
 int STBY_PIN = 6;
 
 bool motor_stop = false;
-
+//aaa
 // フィルタ処理
 void filter() {
     int16_t ax, ay, az, gx, gy, gz;
