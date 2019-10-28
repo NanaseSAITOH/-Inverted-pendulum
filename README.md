@@ -1,6 +1,8 @@
 # Inverted-Pendulum
 ## 概要
 [サクッと作る倒立振子](https://www.hirotakaster.com/weblog/倒立振子をサクッと作る/)を参考に倒立振子を作る.
+cppで実装したソースコードはsrcにあるが動かない.
+arduinoのIDEで動かす場合はsketch_oct17aフォルダを参照されたい.
 
 ## 注意点
 
