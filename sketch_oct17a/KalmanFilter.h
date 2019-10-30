@@ -1,3 +1,6 @@
+#ifndef KalmanFilter_h
+#define KalmanFilter_h
+
 #if ARDUINO >= 100
   #include "Arduino.h"
   #else
@@ -20,3 +23,5 @@ class KalmanFilter
   float S, y;
   float dt, kt;
 };
+
+#endif
