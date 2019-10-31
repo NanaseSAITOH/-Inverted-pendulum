@@ -34,17 +34,16 @@ int STBY_PIN = 13;
 bool motor_stop = false;
 // デバイス初期化時に実行される
 void setup() {
-
+  Serial.begin(9600);
+  Serial.println("start");
   // ピンの初期化
   pinMode(MOTOR1_IN1, OUTPUT);
   pinMode(MOTOR1_IN2, OUTPUT);
   pinMode(MOTOR2_IN1, OUTPUT);
   pinMode(MOTOR2_IN2, OUTPUT);
-  digitalWrite(STBY_PIN, HIGH);
 
   Wire.begin();
   // PCとの通信を開始
-  Serial.begin(115200); //115200bps
   mpu6050.initialize();
   initialize.setFullScaleGyroRange(MPU6050_GYRO_FS_2000);;
 
@@ -80,18 +79,18 @@ void filter() {
 
 void kalmanFilter() {
   int16_t ax, ay, az, gx, gy, gz;
-  Serial.println("end1");
   mpu6050.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-  Serial.println("end2");
   float angleX = (atan2(ay, az) * 180 / M_PI);
   //よくわからんけど計測した角度??
   angleFiltered = kalmanX.update(angleX, gx / GYR_GAIN);
+  Serial.println(angleFiltered);
 }
 
 // PID処理
 void pidPorcess() {
+  //float kp = 220;
   float kp = 250;
-  //float kd = 150;
+  //float kd = 0;
   float kd = 0;
   //float ki = 0.1;
   float ki = 0;
@@ -100,7 +99,7 @@ void pidPorcess() {
   unsigned long now = millis();
   //dt
   timeChange = (now - lastTime);
-
+  
   // PID処理
   if (timeChange >= SAMPLE_TIME) {
     //inputはpEffectと同値
@@ -133,7 +132,6 @@ void loop() {
 
   // 転倒時はモーター停止
   if (motor_stop) {
-    Serial.println("end");
     digitalWrite(MOTOR1_IN1, LOW);
     digitalWrite(MOTOR1_IN2, LOW);
     digitalWrite(MOTOR2_IN1, LOW);
@@ -141,15 +139,12 @@ void loop() {
   }
   //モーターが順回転の時
   else if (motorPWM > 0) {
-    
-    Serial.println("left");
     digitalWrite(MOTOR1_IN1, LOW);
     digitalWrite(MOTOR1_IN2, HIGH);
     digitalWrite(MOTOR2_IN1, LOW);
     digitalWrite(MOTOR2_IN2, HIGH);
   }//モーターが逆回転の時
   else if (motorPWM < 0) {
-    Serial.print("right");
     digitalWrite(MOTOR1_IN1, HIGH);
     digitalWrite(MOTOR1_IN2, LOW);
     digitalWrite(MOTOR2_IN1, HIGH);
