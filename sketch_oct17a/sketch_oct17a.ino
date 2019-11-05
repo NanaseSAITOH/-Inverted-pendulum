@@ -7,7 +7,7 @@ MPU6050 initialize;
 
 #define GYR_GAIN 20.0
 #define SAMPLE_TIME 10.0
-#define STOP_ANGLE 30
+#define STOP_ANGLE 50
 
 KalmanFilter kalmanX(0.001, 0.003, 0.03);
 
@@ -27,24 +27,23 @@ int MOTOR1_IN2 = 8;
 
 int MOTOR2_PWM = 6;
 int MOTOR2_IN1 = 4;
-int MOTOR2_IN2 = 5;
+int MOTOR2_IN2 = 5 ;
 //ジャイロセンサのPIN
 int STBY_PIN = 13;
 
 bool motor_stop = false;
 // デバイス初期化時に実行される
 void setup() {
-
+  Serial.begin(9600);
+  Serial.println("start");
   // ピンの初期化
   pinMode(MOTOR1_IN1, OUTPUT);
   pinMode(MOTOR1_IN2, OUTPUT);
   pinMode(MOTOR2_IN1, OUTPUT);
   pinMode(MOTOR2_IN2, OUTPUT);
-  digitalWrite(STBY_PIN, HIGH);
 
   Wire.begin();
   // PCとの通信を開始
-  Serial.begin(115200); //115200bps
   mpu6050.initialize();
   initialize.setFullScaleGyroRange(MPU6050_GYRO_FS_2000);;
 
@@ -80,27 +79,27 @@ void filter() {
 
 void kalmanFilter() {
   int16_t ax, ay, az, gx, gy, gz;
-  Serial.println("end1");
   mpu6050.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-  Serial.println("end2");
   float angleX = (atan2(ay, az) * 180 / M_PI);
   //よくわからんけど計測した角度??
   angleFiltered = kalmanX.update(angleX, gx / GYR_GAIN);
+  Serial.println(angleFiltered);
 }
 
 // PID処理
 void pidPorcess() {
-  float kp = 250;
-  //float kd = 150;
-  float kd = 0;
-  //float ki = 0.1;
-  float ki = 0;
+  //float kp = 50;50;30;34;32発散するかしないかは45
+  float kp = 32;
+  //float kd = 500;800;800;800;900
+  float kd = 900;
+  //float ki = 0.2;0.2;0.2;0.2;0.2:_/@kp/2
+  float ki = 0.2;
 
   // 計測時間チェック
   unsigned long now = millis();
   //dt
   timeChange = (now - lastTime);
-
+  
   // PID処理
   if (timeChange >= SAMPLE_TIME) {
     //inputはpEffectと同値
@@ -109,7 +108,9 @@ void pidPorcess() {
     iEffect += pEffect * timeChange;
     dEffect = (pEffect - lastpEffect) / timeChange;
     output = kp * pEffect + ki * iEffect + kd * dEffect;
-
+    //float outputp = kp * pEffect + ki * iEffect + kd * dEffect;
+    //Serial.print("outputM");Serial.print(output);
+    //Serial.print("outputP");Serial.print(outputp);
     //PIDした結果のトルクT
     motorPWM = output ;
 
@@ -133,7 +134,6 @@ void loop() {
 
   // 転倒時はモーター停止
   if (motor_stop) {
-    Serial.println("end");
     digitalWrite(MOTOR1_IN1, LOW);
     digitalWrite(MOTOR1_IN2, LOW);
     digitalWrite(MOTOR2_IN1, LOW);
@@ -141,15 +141,12 @@ void loop() {
   }
   //モーターが順回転の時
   else if (motorPWM > 0) {
-    
-    Serial.println("left");
     digitalWrite(MOTOR1_IN1, LOW);
     digitalWrite(MOTOR1_IN2, HIGH);
     digitalWrite(MOTOR2_IN1, LOW);
     digitalWrite(MOTOR2_IN2, HIGH);
   }//モーターが逆回転の時
   else if (motorPWM < 0) {
-    Serial.print("right");
     digitalWrite(MOTOR1_IN1, HIGH);
     digitalWrite(MOTOR1_IN2, LOW);
     digitalWrite(MOTOR2_IN1, HIGH);
