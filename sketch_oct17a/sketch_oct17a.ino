@@ -7,7 +7,7 @@ MPU6050 initialize;
 
 #define GYR_GAIN 20.0
 #define SAMPLE_TIME 10.0
-#define STOP_ANGLE 30
+#define STOP_ANGLE 50
 
 KalmanFilter kalmanX(0.001, 0.003, 0.03);
 
@@ -27,7 +27,7 @@ int MOTOR1_IN2 = 8;
 
 int MOTOR2_PWM = 6;
 int MOTOR2_IN1 = 4;
-int MOTOR2_IN2 = 5;
+int MOTOR2_IN2 = 5 ;
 //ジャイロセンサのPIN
 int STBY_PIN = 13;
 
@@ -88,12 +88,12 @@ void kalmanFilter() {
 
 // PID処理
 void pidPorcess() {
-  //float kp = 220;
-  float kp = 250;
-  //float kd = 0;
-  float kd = 0;
-  //float ki = 0.1;
-  float ki = 0;
+  //float kp = 50;50;30;34;32発散するかしないかは45
+  float kp = 32;
+  //float kd = 500;800;800;800;900
+  float kd = 900;
+  //float ki = 0.2;0.2;0.2;0.2;0.2:_/@kp/2
+  float ki = 0.2;
 
   // 計測時間チェック
   unsigned long now = millis();
@@ -108,7 +108,9 @@ void pidPorcess() {
     iEffect += pEffect * timeChange;
     dEffect = (pEffect - lastpEffect) / timeChange;
     output = kp * pEffect + ki * iEffect + kd * dEffect;
-
+    //float outputp = kp * pEffect + ki * iEffect + kd * dEffect;
+    //Serial.print("outputM");Serial.print(output);
+    //Serial.print("outputP");Serial.print(outputp);
     //PIDした結果のトルクT
     motorPWM = output ;
 
